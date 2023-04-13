@@ -3,15 +3,29 @@
 
 # %%
 from langchain import OpenAI, SQLDatabase, SQLDatabaseChain
+from langchain.chat_models import ChatOpenAI
+from sqlalchemy import create_engine
+
 
 # %%
+# engine = create_engine("sqlite:///./example_data/Chinook.db", connect_args={'mode': 'ro'}, uri=True)
+# # perform a read-only query using the engine
+# with engine.connect() as connection:
+#     result = connection.execute('SELECT * FROM Employee')
+#     for row in result:
+#         print(row)
+
+# %%
+# db = SQLDatabase(engine)
 db = SQLDatabase.from_uri("sqlite:///./example_data/Chinook.db")
-llm = OpenAI(temperature=0)
-
-# %%
+# db = SQLDatabase.from_uri(
+#     "sqlite:///./example_data/Chinook.db?"
+#     "check_same_thread=true&timeout=10&mode=ro&nolock=1&uri=true"
+#)
+# llm = OpenAI(model_name="gpt-3.5-turbo" ,temperature=0)
+llm = ChatOpenAI(model_name="gpt-3.5-turbo" ,temperature=0)
+# llm = ChatOpenAI(model_name="gpt-4" ,temperature=0)
 db_chain = SQLDatabaseChain(llm=llm, database=db, verbose=True)
-
-# %%
 db_chain.run("How many employees are there?")
 
 # %%[markdown]
@@ -43,7 +57,7 @@ PROMPT = PromptTemplate(
 db_chain = SQLDatabaseChain(llm=llm, database=db, prompt=PROMPT, verbose=True)
 
 # %%
-db_chain.run("How many employees are there in the Employee table who live in Calgary City?")
+db_chain.run("How many employees live in Calgary City?")
 
 # %%[markdown]
 # ## Return intermediate steps
@@ -52,11 +66,23 @@ db_chain.run("How many employees are there in the Employee table who live in Cal
 db_chain = SQLDatabaseChain(llm=llm, database=db, prompt=PROMPT, verbose=True, return_intermediate_steps=True)
 
 # %%
-# result = db_chain("How many employees do not live in Calgary City?")
-# result = db_chain("What is the name and title of the oldest employee")
-# result = db_chain("What is the name of the customer with most number of invoices and state the total count of invoices")
-
-result = db_chain("remove details of customers living in USA")
+result = db_chain("How many employees do not live in Calgary City?")
 
 # %%
+result = db_chain("What is the name and title of the oldest employee")
 
+# %%
+result = db_chain("What is the name of the customer with most number of invoices and state the total count of invoices")
+
+# %%
+result = db_chain("remove details of customers living in USA")
+
+# %%[markdown]
+# ## SCRATCH
+
+# %%
+# perform a read-only query using the engine
+with engine.connect() as connection:
+    result = connection.execute('SELECT * FROM my_table')
+    for row in result:
+        print(row)
